@@ -50,13 +50,31 @@ if((connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr))) < 0){
 ```bash
 ssh ubuntu@192.168.3.193
 ssh ubuntu@192.168.1.191
-docker start dsp_agent
-docker exec -it dsp_agent sh
+docker start dsp_agent2
+docker exec -it dsp_agent2 sh
 ```
 进入容器后/home目录
 ```bash
 ./main 192.168.1.191 10
 ```
+
+## DSP_agent的配置
+在58所机器上dsp_agent的配置文件为容器里/home/config.json,其含义如下：
+```json
+{
+	"REGISTRY_CENTER":"192.168.1.10:8500",
+    "agent_ip": "192.168.1.191",
+    "agent_port": 5103,
+    "agent_health_port":5203,
+    "service_name": "DSP_agent",
+    "weight": 1,
+    "ssdp_server_ip": "10.119.84.190", //核心框架ip
+    "ssdp_server_port": 8080, //核心框架端口
+    "is_regist_service": 1
+}
+
+```
+这部分和实验室的开发机上的config.json不一样，以58所的为准，当删除一个dsp_agent容器后再次创建时需要修改这个配置文件。如果只是重启容器则不用管。
 
 ## 注意事项
 1. dsp_agent代码修改后需要打包成容器放到58的板子上，由于编译使用的容器较大，需要把编译好的可执行程序复制到运行时容器上，然后再打包成镜像。步骤如下：

@@ -100,6 +100,21 @@ docker exec -it sar_app bash
 tail -f log.txt
 ```
 
+## SAR的配置
+在58所机器上sar的配置文件为容器里/code/config.json,其含义如下：
+```json
+{
+    "REGISTRY_CENTER":"192.168.1.10:8500", //服务注册中心地址
+	"dsp_agent_name":"DSP_agent",  //dsp agent具体的名字
+    "sar_arm_name":"SAR_metaservice", //当前服务使用的名字
+    "sar_name":"SAR_metaApp", //西电两个应用服务所用的名字
+    "sar_port":5100, //当前服务端口
+    "check_health_port":5200, //检查服务所用的端口
+    "is_regist_service": 1 //是否注册服务
+}
+```
+这部分和实验室的开发机上的config.json不一样，以58所的为准，当删除一个sar容器后再次创建时需要修改这个配置文件。如果只是重启容器则不用管。
+
 ## 注意事项
 1. 改这部分的代码最好还是在58所的机器上该，实验室服务器上的只是用来备份与学习
 2. 关于docker容器，该代码需要在 hanxi739/alpine_srpc_developing:3.0这个镜像的环境中运行，当前的sar_app_dev就是该镜像的容器
