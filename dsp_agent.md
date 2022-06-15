@@ -48,14 +48,17 @@ if((connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr))) < 0){
 
 2. 启动dsp_agent，用来访问核心框架,在191机器
 ```bash
-ssh ubuntu@192.168.3.193
+ssh ubuntu@10.119.84.100
 ssh ubuntu@192.168.1.191
-docker start dsp_agent2
-docker exec -it dsp_agent2 sh
+docker start dsp_agent #启动容器
+docker exec -it  -w /code bash #进入容器
+./deploy.sh #启动服务
 ```
-进入容器后/home目录
+
+3. 若要启动dsp_client用来测试，再次进入该容器内的 /code目录
 ```bash
-./main 192.168.1.191 10
+docker exec -it  -w /code bash
+./dsp_client
 ```
 
 ## DSP_agent的配置
@@ -74,15 +77,5 @@ docker exec -it dsp_agent2 sh
 }
 
 ```
-这部分和实验室的开发机上的config.json不一样，以58所的为准，当删除一个dsp_agent容器后再次创建时需要修改这个配置文件。如果只是重启容器则不用管。
+这部分和实验室的开发机上的config.json不一样，以58所的为准。
 
-## 注意事项
-1. dsp_agent代码修改后需要打包成容器放到58的板子上，由于编译使用的容器较大，需要把编译好的可执行程序复制到运行时容器上，然后再打包成镜像。步骤如下：
-```bash
-#在legacy_dev容器中生成两个可执行文件，main和dsp_client
-#运行dsp_agent_release容器
-docker exec -it dsp_agent_release sh
-#将/code目录里的两个可执行文件main和dsp_client拷贝到/home目录
-#用docker commit 指令创建一个新的镜像
- docker commit -a hanxi739    dsp_agent_release hanxi739/alpine_dsp_agent:<version>
-```

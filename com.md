@@ -17,6 +17,8 @@ cd app_v3/com_app
 service CommApplication {
     rpc Comm_Open_Interface(Comm_Open_Request) returns (Comm_Open_Response);
     rpc Comm_Close_Interface(Comm_Close_Request) returns (Comm_Close_Response);
+    rpc Comm_Config_Interface(Comm_Config_Request) returns (Comm_Config_Response);
+    rpc Comm_Get_Reconstruct_Time(Comm_ReconstructTime_Request) returns (Comm_ReconstructTime_Response);
 };
 ```
 主要修改这两个接口生成函数的代码:
@@ -27,17 +29,27 @@ service CommApplication {
     client.LoadCommunication(&req, &resp, &target_Location_synctx);
     ```
     2. sleep一定的时间
-    3. 调用Conif Comm接口，在FPGA端实际上是start
+    3. 调用Start Comm接口，默认是Turbo编码
     ```c++
-    client.ConfigCommunication(&req, &resp, &target_Location_synctx);
+    client.StartCommunication(&req, &resp, &target_Location_synctx);
     ```
-
 
 
 3. Close_Comm主要的工作（按顺序）
     1. 调用Stop Comm接口
     ```c++
     client.StopCommunication(&req, &resp, &target_Location_synctx);
+    ```
+
+4. Config_Comm主要的工作（按顺序）
+    1. 调用Config Comm接口，根据传入type类型设置不同的objid
+    ```c++
+    string obj_id = "Turbo@444c0f9a";
+		if(request->type() == 1)
+			obj_id = "LDPC@234bfc8c";
+		
+		req.set_objid(obj_id);
+    client.ConfigCommunication(&req, &resp, &target_Location_synctx);
     ```
 
 
@@ -54,54 +66,31 @@ make
 
 ## 通信模块部署(58所的机器)
 
-1. 启动dsp_agent，用来访问核心框架,在191机器
+1. 首先登录到新主控，然后登录到gpp4
 ```bash
-ssh ubuntu@192.168.3.193
-ssh ubuntu@192.168.1.191
-docker start dsp_agent
-docker exec -it dsp_agent sh
+ssh ubuntu@10.119.84.100
+ssh ubuntu@192.168.1.194
 ```
-进入容器后/home目录
-```bash
-./main 192.168.1.191 10
-```
-
-2. 首先登录到新主控，然后登录到gpp4
-```bash
-ssh ubuntu@192.168.3.193
-ssh ubuntu@192.168.1.197
-```
-3. 启动容器com_app，然后进入
+2. 启动容器com_app，然后进入
 ```bash
 docker start com_app
 docker exec -it com_app bash
 ```
 
-4. 进入com_app容器的/code，启动server
+3. 进入com_app容器的/code，启动server
 ```bash
-./com_server 192.168.1.197 10
+./deploy.sh
 ```
 
-5. 进入com_app容器的/code，启动client
+4. 进入com_app容器的/code，启动client
 ```bash
-./com_client 192.168.1.197 5106
+./com_client 192.168.1.194 5106
 ```
 
-6. 在197机器的/home/ubuntu/com_app目录观看日志，
+5. 在194机器的/home/ubuntu/com_app目录观看日志，
 ```bash
 tail -f log.txt
 ```
 
-## 注意事项
-1. 改这部分的代码最好还是在58所的机器上该，实验室服务器上的只是用来备份与学习
-2. 通信模块启动的参数由下表定义，在实现中只需要给核心框架发送一个32位的整数值作为参数即可，具体的移位操作见代码。有关通信功能的问题@喻永松同学
------
-| 名称              | 位宽 |  功能 |
-| -----------       | ----------- | --- |
-| rd_start          | [0:0]     |    0:不启动 1：启动      |
-| BitRate           | [2:1]      | 0：3.125Mbps(默认) <br> 1：6.25Mbps<br>2：12.5Mbps<br>3：25Mbps|
-| ModulationOrder   | [6:3]     | 0：2阶<br>1：4阶(默认)<br>2：8阶<br>3：16阶<br>4：64阶 |
-| SpreadSpectrumRate  | [7:7]        | 0：1.023Mbps(默认)<br>1：10.23Mbps |
- | CodeType          | [8:8]        |  0：编码1<br>1：编码2|
-| ModType           | [9:9]        | 0：调制1（Sar成像）<br>1：调制2（导航增强） |
+
 
