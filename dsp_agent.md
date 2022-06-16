@@ -48,7 +48,7 @@ if((connect(sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr))) < 0){
 
 2. 启动dsp_agent，用来访问核心框架,在191机器
 ```bash
-ssh ubuntu@10.119.84.100
+ssh ubuntu@10.119.84.88
 ssh ubuntu@192.168.1.191
 docker start dsp_agent #启动容器
 docker exec -it  -w /code bash #进入容器

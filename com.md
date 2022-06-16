@@ -68,7 +68,7 @@ make
 
 1. 首先登录到新主控，然后登录到gpp4
 ```bash
-ssh ubuntu@10.119.84.100
+ssh ubuntu@10.119.84.88
 ssh ubuntu@192.168.1.194
 ```
 2. 启动容器com_app，然后进入
